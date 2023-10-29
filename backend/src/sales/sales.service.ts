@@ -5,7 +5,7 @@ import { Contract } from '../entity/contract.entity';
 import { Tx } from '../entity/tx.entity';
 import { GeneratePayLinkDto } from 'src/dto/generate-paylink';
 import { DeleteContractsDto } from 'src/dto/delete-contract';
-import basePayUrl from 'src/common';
+import basePayUrl from 'src/common/common';
 // import * as bcrypt from 'bcrypt';
 const fs = require('fs');
 const pdfParser = require('pdf-parse');
@@ -42,6 +42,8 @@ export class SalesService {
     );
     ret['date'] = text.slice(text.indexOf(ptnDate) + ptnDate.length);
     ret['date'] = ret['date'].slice(0, ret['date'].search(/[a-zA-Z ]/));
+    ret['date'] = ret['date'].slice(0, 8) + " " + ret['date'].slice(8);
+
     ret['aircraft'] = text.slice(
       text.indexOf(ptnAircraft) + ptnAircraft.length,
     );
@@ -54,14 +56,15 @@ export class SalesService {
     );
     ret['creation'] = ret['creation'].slice(
       ret['creation'].indexOf(ret['quote_id']) + ret['quote_id'].length + 1,
-      ret['creation'].indexOf('\n'),
+      ret['creation'].indexOf(' UTC\n'),
     );
 
-    ret['email'] = text.slice(text.indexOf(ptnEmail) + ptnEmail.length);
+    ret['email'] = text.slice(text.indexOf(ptnEmail) + ptnEmail.length);    
     ret['email'] = ret['email'].slice(
       ret['email'].indexOf(ptnEmail) + ptnEmail.length,
     );
-    ret['email'] = ret['email'].slice(0, ret['email'].indexOf('\n'));
+    ret['email'] = ret['email'].slice(0, ret['email'].indexOf(ptnAircraft) - 1);
+    ret['email'] = ret['email'].slice(ret['email'].lastIndexOf("\n"));
 
     fs.unlinkSync(path);
     return ret;

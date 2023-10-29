@@ -46,7 +46,9 @@ const Contract = () => {
           data.sum,
           data.link,
           amounts,
-          status
+          status,
+          data.signed_by,
+          data.signed_time
         )
       );
     });
@@ -92,7 +94,9 @@ const Contract = () => {
           result.sum,
           result.link,
           result.arrTx,
-          result.status
+          result.status,          
+          "",
+          null
         )
       );
       setContractData(newContracts);
@@ -113,7 +117,9 @@ const Contract = () => {
     sum,
     link,
     transaction,
-    status
+    status,
+    signed_by,
+    signed_time
   ) {
     return {
       creation,
@@ -124,6 +130,8 @@ const Contract = () => {
       link,
       transaction,
       status,
+      signed_by,
+      signed_time
     };
   }
 
@@ -133,14 +141,14 @@ const Contract = () => {
       numeric: false,
       disablePadding: false,
       label: "Creation",
-      sortable: true,
+      sortable: false,
     },
     {
       id: "date",
       numeric: false,
       disablePadding: false,
       label: "Date",
-      sortable: true,
+      sortable: false,
     },
     {
       id: "quote_id",
@@ -184,13 +192,20 @@ const Contract = () => {
       label: "Status",
       sortable: false,
     },
-    // {
-    //   id: "operation",
-    //   numeric: false,
-    //   disablePadding: false,
-    //   label: "Operation",
-    //   sortable: false,
-    // },
+    {
+      id: "signed_by",
+      numeric: false,
+      disablePadding: false,
+      label: "Accepted By",
+      sortable: false,
+    },
+    {
+      id: "signed_time",
+      numeric: false,
+      disablePadding: false,
+      label: "Accepted At",
+      sortable: false,
+    },
   ];
   return (
     <Box>

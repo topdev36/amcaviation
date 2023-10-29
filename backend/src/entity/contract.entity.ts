@@ -27,6 +27,12 @@ export class Contract {
   @Column()
   link: string;
 
+  @Column()
+  signed_by: string;
+
+  @Column()
+  signed_time: Date;
+
   @OneToMany(type => Tx, tx => tx.contract)
   txs: Tx[];
 }

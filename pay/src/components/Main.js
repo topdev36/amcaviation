@@ -9,7 +9,7 @@ import {
 import { useEffect, useState } from "react";
 import toast, { Toaster } from "react-hot-toast";
 import { useParams } from "react-router-dom";
-import { getContract } from "service/BackendApi";
+import { getContract, requestApproveContract } from "service/BackendApi";
 
 const Main = () => {
   const params = useParams();
@@ -17,19 +17,31 @@ const Main = () => {
   const [approveCancelPolicy, setApproveCancelPolicy] = useState(false);
   const [approvePrivacyPolicy, setApprovePrivacyPolicy] = useState(false);
   const [name, setName] = useState("");
+  const [timeApproved, setTimeApproved] = useState("");
   const [allApproved, setAllApproved] = useState(false);
   const [sum, setSum] = useState(0);
   const [tx, setTx] = useState([]);
   const [links, setLinks] = useState([]);
   const [status, setStatus] = useState([]);
+
+  useEffect(() => {
+    getContract(params.id, cbGetContract);
+  }, []);
+
   const onApproveAll = () => {
-    if (name !== "") setAllApproved(true);
+    if (name !== "") {
+      requestApproveContract(params.id, name, cbRequestApproveContract);
+    }
     else toast("Please type your name");
   };
 
-  useEffect(() => {
-    getContract(params.id.substring(0, 8), cbGetContract);
-  }, []);
+  const cbRequestApproveContract = (data) => {
+    if(data.success == true){
+      setAllApproved(true);
+      setName(data.signed_by);
+      setTimeApproved((new Date(data.signed_time)).toLocaleDateString() + " " + (new Date(data.signed_time)).toLocaleTimeString());
+    }
+  }
 
   const cbGetContract = (data) => {
     if (data) {
@@ -46,6 +58,14 @@ const Main = () => {
       setLinks(links);
       setStatus(status);
       setSum(data.sum);
+      if(data.signed_by !== "" && data.signed_time !== null){
+        setApproveContract(true);
+        setApprovePrivacyPolicy(true);
+        setApproveCancelPolicy(true);
+        setAllApproved(true);
+        setName(data.signed_by);
+        setTimeApproved((new Date(data.signed_time)).toLocaleDateString() + " " + (new Date(data.signed_time)).toLocaleTimeString());
+      }
     }
   };
   return (
@@ -54,6 +74,7 @@ const Main = () => {
         maxWidth: "600px",
         margin: "auto",
         display: sum ? "block" : "none",
+        padding: 2
       }}
     >
       <Toaster />
@@ -66,7 +87,7 @@ const Main = () => {
         textAlign={"left"}
         sx={{ maxWidth: "50%", margin: "auto" }}
       >
-        <Grid item md={12}>
+        <Grid item xs={12}>
           <Checkbox
             disabled={allApproved}
             checked={approveContract}
@@ -76,7 +97,7 @@ const Main = () => {
           ></Checkbox>
           Contract
         </Grid>
-        <Grid item md={12}>
+        <Grid item xs={12}>
           <Checkbox
             disabled={allApproved}
             checked={approveCancelPolicy}
@@ -86,7 +107,7 @@ const Main = () => {
           ></Checkbox>
           Cancellation Policy
         </Grid>
-        <Grid item md={12}>
+        <Grid item xs={12}>
           <Checkbox
             disabled={allApproved}
             checked={approvePrivacyPolicy}
@@ -103,6 +124,7 @@ const Main = () => {
         size="small"
         value={name}
         onChange={(e) => setName(e.target.value)}
+        sx={{display: allApproved ? "none" : "initial"}}
       ></TextField>
       <Button
         disabled={allApproved}
@@ -114,31 +136,31 @@ const Main = () => {
               : "hidden",
         }}
       >
-        Save & Proceed
+        {allApproved ? "Accepted by " + name + " at " + timeApproved : "Save & Proceed"}
       </Button>
+
       <Box sx={{ mt: 2, display: allApproved ? "block" : "none" }}>
         <Typography>
-          Due to online payment limits, there more than one payments are
-          required. To pay, click one by one.
+          {tx.length > 1 ? "Due to online payment limits, there more than one payments are required. To pay, click one by one." : "To pay, click the link below."}
         </Typography>
         <Grid container sx={{ mt: 3 }}>
-          <Grid item md={6} sx={{ textAlign: "right", pr: 3 }}>
+          <Grid item xs={6} md={6} sx={{ textAlign: "right", pr: 3 }}>
             Total pay amount:
           </Grid>
-          <Grid item md={2} sx={{ textAlign: "left", mr: "auto" }}>
+          <Grid item xs={2} md={2} sx={{ textAlign: "left", mr: "auto" }}>
             <Typography sx={{ color: "blue" }}>€{sum}</Typography>
           </Grid>
         </Grid>
         {tx.map((value, index) => {
           return (
             <Grid container>
-              <Grid item md={6} sx={{ textAlign: "right", pr: 3 }}>
+              <Grid item xs={6} md={6} sx={{ textAlign: "right", pr: 3 }}>
                 Pay
               </Grid>
-              <Grid item md={2} sx={{ textAlign: "left" }}>
+              <Grid item xs={2} md={2} sx={{ textAlign: "left" }}>
                 <Typography sx={{ color: "blue" }}>€{value}</Typography>
               </Grid>
-              <Grid item md={4} sx={{ textAlign: "left" }}>
+              <Grid item xs={4} md={4} sx={{ textAlign: "left" }}>
                 {status[index] == "Completed" ? (
                   "Paid"
                 ) : (

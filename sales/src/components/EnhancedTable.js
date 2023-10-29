@@ -61,7 +61,7 @@ function EnhancedTableHead(props) {
     numSelected,
     rowCount,
     onRequestSort,
-    headCells    
+    headCells,
   } = props;
   const createSortHandler = (property) => (event) => {
     onRequestSort(event, property);
@@ -160,7 +160,7 @@ function EnhancedTableToolbar(props) {
 
       {numSelected > 0 && (
         <Tooltip title="Delete">
-          <IconButton onClick = {() => onDelete()}>
+          <IconButton onClick={() => onDelete()}>
             <DeleteIcon />
           </IconButton>
         </Tooltip>
@@ -174,8 +174,8 @@ EnhancedTableToolbar.propTypes = {
 };
 
 export default function EnhancedTable({ headCells, rowData, onDeleteRows }) {
-  const [order, setOrder] = React.useState("asc");
-  const [orderBy, setOrderBy] = React.useState("creation");
+  const [order, setOrder] = React.useState("desc");
+  const [orderBy, setOrderBy] = React.useState("quote_id");
   const [selected, setSelected] = React.useState([]);
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(50);
@@ -225,8 +225,7 @@ export default function EnhancedTable({ headCells, rowData, onDeleteRows }) {
   const handleDelete = () => {
     onDeleteRows(selected);
     setSelected([]);
-  }
-
+  };
 
   const isSelected = (id) => selected.indexOf(id) !== -1;
 
@@ -243,7 +242,10 @@ export default function EnhancedTable({ headCells, rowData, onDeleteRows }) {
     <Box sx={{ width: "100%" }}>
       <Toaster />
       <Paper sx={{ width: "100%", mb: 2 }}>
-        <EnhancedTableToolbar numSelected={selected.length} onDelete = {handleDelete} />
+        <EnhancedTableToolbar
+          numSelected={selected.length}
+          onDelete={handleDelete}
+        />
         <TableContainer>
           <Table
             sx={{
@@ -335,18 +337,32 @@ export default function EnhancedTable({ headCells, rowData, onDeleteRows }) {
                         </TableCell>
                       ) : (
                         <TableCell align="center">
-                          {key !== "link" ? (
+                          {key == "signed_time" ? ( row[key] == null ? "" :
+                            new Date(row[key]).toLocaleDateString() +
+                            " " +
+                            new Date(row[key]).toLocaleTimeString()
+                          ) : key !== "link" ? (
                             row[key].toString()
                           ) : (
                             <>
-                              <a href={row[key]} style={{ marginRight: "5px" }}>
+                              <a
+                                href={row[key]}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                }}
+                                style={{ marginRight: "5px" }}
+                              >
                                 Link
                               </a>
                               <Button
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  navigator.clipboard.writeText(row[key]);
-                                  toast("Copied!");
+                                  try {
+                                    navigator.clipboard.writeText(row[key]);
+                                    toast("Copied!");
+                                  } catch (e) {
+                                    toast("Copy requires ssl");
+                                  }
                                 }}
                               >
                                 <ContentCopyIcon fontSize="small"></ContentCopyIcon>

@@ -27,6 +27,15 @@ const getTxInfo = (id, txid, cb) => {
   sendPostRequest(url, params, cb);
 };
 
+const requestApproveContract = (id, name, cb) => {
+  const url = "signContract";
+  let params = {
+    id: id,
+    name: name,
+  };
+  sendPostRequest(url, params, cb);
+}
+
 const sendPostRequest = (url, params, cb) => {
   const config = {
     headers: {
@@ -36,12 +45,13 @@ const sendPostRequest = (url, params, cb) => {
   http
     .post(url, params, config)
     .then((response) => {
+      console.log(response);
       var resp = response.data;
       cb(resp);
     })
     .catch((err) => {
-      console.log(err);
+      console.log(url, err);
     });
 };
 
-export { getContract, getTxInfo };
+export { getContract, getTxInfo, requestApproveContract };

@@ -9,6 +9,8 @@ import {
   FormControlLabel,
   FormLabel,
   Divider,
+  Backdrop,
+  CircularProgress
 } from "@mui/material";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import RemoveCircleOutlineIcon from "@mui/icons-material/RemoveCircleOutline";
@@ -26,10 +28,12 @@ function AddDialog(props) {
   const [email, setEmail] = useState("");
   const [arrTx, setTx] = useState([]);
   const [sumTx, setTxSum] = useState(-1);
+  const [isLoading, setIsLoading] = useState(false);
   const inputFile = useRef(null);
 
   function handleFileChange(event) {
     if (event.target.files[0] != undefined) {
+        setIsLoading(true);
       uploadFile(event.target.files[0], cbUpload);
     }
   }
@@ -82,15 +86,16 @@ function AddDialog(props) {
       quote_id: quote_id,
       creation: creation,
       date: date,
-      quote_id: quote_id,
       aircraft: aircraft,
       sum: sum,
       txs: arrTx,
     };
+    setIsLoading(true);
     requestPaymentLink(params, cbGenerate);
   };
 
   const cbGenerate = (resp) => {
+    setIsLoading(false);
     if (!resp) {
       toast("Pay link can be generated only once.");
       return;
@@ -110,6 +115,7 @@ function AddDialog(props) {
   };
 
   const cbUpload = (resp) => {
+    setIsLoading(false);
     if (!resp) {
       toast("Upload failed! Only .pdf file is allowed.");
       return;
@@ -132,6 +138,12 @@ function AddDialog(props) {
 
   return (
     <Dialog onClose={handleClose} open={open}>
+      <Backdrop
+        sx={{ color: "#fff", zIndex: (theme) => theme.zIndex.drawer + 1 }}
+        open={isLoading}
+      >
+        <CircularProgress color="inherit" />
+      </Backdrop>
       <Box
         sx={{
           padding: 3,

@@ -5,6 +5,7 @@ import {
     UploadedFile,
     UseInterceptors,
     Body,
+    Req
   } from '@nestjs/common';
 
 import { Express } from 'express';
@@ -73,5 +74,11 @@ export class SalesController {
   async deleteContracts(@Body() data: DeleteContractsDto){
     let ret = await this.salesService.deleteContracts(data);
     return ret;
+  }
+
+  @Get('google')
+  google(@Req() req){
+    console.log("aaa");
+    return "bbb";
   }
 }
