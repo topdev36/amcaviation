@@ -86,7 +86,7 @@ function AddDialog(props) {
     if (idx == "date") setDate(e.target.value);
     if (idx == "aircraft") setAircraft(e.target.value);
     if (idx == "sum") {
-      setSum(e.target.value);
+      setSum(Number(e.target.value));
       setTx([Number(e.target.value)]);
       setTxSum(Number(e.target.value));
     }
