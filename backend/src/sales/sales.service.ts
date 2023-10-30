@@ -89,18 +89,18 @@ export class SalesService {
     contract['sum'] = dto.sum;
     contract['email'] = dto.email;
     contract['link'] = newLink;
-    this.addContract(contract, dto.txs);
+    this.addContract(contract, dto.txs, newID);
     ret['success'] = true;
     ret['link'] = newLink;
     return ret;
   }
 
-  async addContract(contract: Contract, txs: []) {
+  async addContract(contract: Contract, txs: [], newID) {
     let ret = await this.contractsRepository.save(contract);
     
     txs.map((tx, index) => {
         let transaction = new Tx();
-        var newID = contract.quote_id + Date.now() + "/" + (index + 1);
+        var newID = newID + "/" + (index + 1);
         var newLink = basePayUrl + newID;
         transaction.amount = tx;
         transaction.link = newLink;
