@@ -100,8 +100,7 @@ export class SalesService {
     
     txs.map((tx, index) => {
         let transaction = new Tx();
-        var newID = newID + "/" + (index + 1);
-        var newLink = basePayUrl + newID;
+        var newLink = basePayUrl + newID + "/" + (index + 1);
         transaction.amount = tx;
         transaction.link = newLink;
         transaction.status = "Pending";
