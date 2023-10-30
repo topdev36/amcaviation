@@ -1,8 +1,9 @@
 import axios from 'axios';
+import domain from "common/common";
 
 const http = axios.create({
   // baseURL: 'http://localhost:8081/',
-  baseURL: 'http://192.168.131.212:8006/sales',
+  baseURL: 'http://' + domain + '/sales',
   // baseURL: 'http://45.142.215.141:8006/sales',
   // baseURL: 'http://192.168.131.212:8081/',
   // baseURL: 'http://51.83.223.48:8081/',

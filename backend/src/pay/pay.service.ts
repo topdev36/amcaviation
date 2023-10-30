@@ -25,7 +25,7 @@ export class PayService {
     let ret = {
         success: false
     };
-    let contract = await this.contractsRepository.findOne({where: {link: basePayUrl + id}});
+    let contract = await this.contractsRepository.findOne({where: {link: basePayUrl + id, signed_by: "", signed_time: null}});
     
     if(contract != null){
         let time = new Date();

@@ -10,7 +10,7 @@ import {
   FormLabel,
   Divider,
   Backdrop,
-  CircularProgress
+  CircularProgress,
 } from "@mui/material";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import RemoveCircleOutlineIcon from "@mui/icons-material/RemoveCircleOutline";
@@ -33,7 +33,7 @@ function AddDialog(props) {
 
   function handleFileChange(event) {
     if (event.target.files[0] != undefined) {
-        setIsLoading(true);
+      setIsLoading(true);
       uploadFile(event.target.files[0], cbUpload);
     }
   }
@@ -79,6 +79,18 @@ function AddDialog(props) {
 
     setTxSum(tmpSum);
     setTx(newArrTx);
+  };
+
+  const infoChanged = (e, idx) => {
+    if (idx == "quote_id") setQuoteID(e.target.value);
+    if (idx == "date") setDate(e.target.value);
+    if (idx == "aircraft") setAircraft(e.target.value);
+    if (idx == "sum") {
+      setSum(e.target.value);
+      setTx([Number(e.target.value)]);
+      setTxSum(Number(e.target.value));
+    }
+    if (idx == "email") setEmail(e.target.value);
   };
 
   const onGenerateLink = () => {
@@ -160,54 +172,75 @@ function AddDialog(props) {
           </Grid>
         </Grid>
         <Grid container>
-          <Grid item md={3}>
+          <Grid item xs={3}>
             <FormLabel>Date</FormLabel>
           </Grid>
-          <Grid item md={9}>
-            {<TextField size="small" disabled value={date}></TextField>}
+          <Grid item xs={9}>
+            <TextField
+              size="small"
+              value={date}
+              onChange={(e) => infoChanged(e, "date")}
+            ></TextField>
           </Grid>
         </Grid>
         <Grid container>
-          <Grid item md={3}>
+          <Grid item xs={3}>
             <FormLabel>Quote ID</FormLabel>
           </Grid>
-          <Grid item md={9}>
-            <TextField size="small" disabled value={quote_id}></TextField>
+          <Grid item xs={9}>
+            <TextField
+              size="small"
+              value={quote_id}
+              onChange={(e) => infoChanged(e, "quote_id")}
+            ></TextField>
           </Grid>
         </Grid>
         <Grid container>
-          <Grid item md={3}>
+          <Grid item xs={3}>
             <FormLabel>Aircraft</FormLabel>
           </Grid>
-          <Grid item md={9}>
-            <TextField size="small" disabled value={aircraft}></TextField>
+          <Grid item xs={9}>
+            <TextField
+              size="small"
+              value={aircraft}
+              onChange={(e) => infoChanged(e, "aircraft")}
+            ></TextField>
           </Grid>
         </Grid>
         <Grid container>
-          <Grid item md={3}>
+          <Grid item xs={3}>
             <FormLabel>Sum</FormLabel>
           </Grid>
-          <Grid item md={9}>
-            <TextField size="small" disabled value={sum}></TextField>
+          <Grid item xs={9}>
+            <TextField
+              size="small"
+              type="number"
+              value={sum}
+              onChange={(e) => infoChanged(e, "sum")}
+            ></TextField>
           </Grid>
         </Grid>
         <Grid container>
-          <Grid item md={3}>
+          <Grid item xs={3}>
             <FormLabel>Recipient Email</FormLabel>
           </Grid>
-          <Grid item md={9}>
-            <TextField size="small" disabled value={email}></TextField>
+          <Grid item xs={9}>
+            <TextField
+              size="small"
+              value={email}
+              onChange={(e) => infoChanged(e, "email")}
+            ></TextField>
           </Grid>
         </Grid>
         <Grid container>
-          <Grid item md={3}>
+          <Grid item xs={3}>
             <FormLabel>Payment</FormLabel>
           </Grid>
         </Grid>
         {arrTx.map((amount, index) => {
           return (
             <Grid container key={"txs_" + index}>
-              <Grid item md={7} sx={{ ml: "auto" }}>
+              <Grid item xs={7} sx={{ ml: "auto" }}>
                 <TextField
                   type="number"
                   size="small"
@@ -218,7 +251,7 @@ function AddDialog(props) {
               {index == arrTx.length - 1 ? (
                 <Grid
                   item
-                  md={2}
+                  xs={2}
                   sx={{ ".MuiButtonBase-root": { padding: "0px !important" } }}
                 >
                   <Button
@@ -232,7 +265,7 @@ function AddDialog(props) {
               ) : (
                 <Grid
                   item
-                  md={2}
+                  xs={2}
                   sx={{ ".MuiButtonBase-root": { padding: "0px !important" } }}
                 >
                   <Button
