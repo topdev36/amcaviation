@@ -12,6 +12,8 @@ export class GeneratePayLinkDto {
     @IsString()
     readonly aircraft: string;
     @IsString()
+    readonly file: string;    
+    @IsString()
     readonly sum: number;
     @IsArray()
     readonly txs: [];

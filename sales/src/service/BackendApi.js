@@ -9,7 +9,8 @@ const http = axios.create({
   // baseURL: 'http://51.83.223.48:8081/',
   headers: {
     'Content-type': 'application/json'
-  }
+  },
+  withCredentials: true
 });
 
 const uploadFile = (file, cb) => {
@@ -19,7 +20,7 @@ const uploadFile = (file, cb) => {
     formData.append('fileName', file.name);
     const config = {
       headers: {
-        'content-type': 'multipart/form-data',
+        'content-type': 'multipart/form-data'
       },
     };
     http.post(url, formData, config).then((response) => {
@@ -32,12 +33,7 @@ const uploadFile = (file, cb) => {
 
 const requestPaymentLink = (params, cb) => {
   const url = 'generateLink';
-  const config = {
-    headers: {
-      'content-type': 'application/json',
-    },
-  };
-  http.post(url, params, config).then((response) => {
+  http.post(url, params).then((response) => {
     var resp = response.data;
     if(resp.success == true){
       return cb(resp.link);
@@ -48,24 +44,14 @@ const requestPaymentLink = (params, cb) => {
 
 const getAllContracts = (cb) => {
   const url = 'getAllContracts';
-  const config = {
-    headers: {
-      'content-type': 'application/json',
-    },
-  };
-  http.post(url, {}, config).then((response) => {
+  http.post(url, {}).then((response) => {
     cb(response.data);
   }).catch((err) => { console.log(err); });  
 }
 
 const deleteContracts = (selected, cb) => {
   const url = 'deleteContracts';
-  const config = {
-    headers: {
-      'content-type': 'application/json',
-    },
-  };
-  http.post(url, {quote_ids: selected}, config).then((response) => {
+  http.post(url, {quote_ids: selected}).then((response) => {
     cb(response.data)
   }).catch((err) => { console.log(err); });  
 }

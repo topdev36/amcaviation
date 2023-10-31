@@ -5,11 +5,14 @@ import {
   Checkbox,
   TextField,
   Button,
+  Divider,
+  Fade,
 } from "@mui/material";
 import { useEffect, useState } from "react";
 import toast, { Toaster } from "react-hot-toast";
 import { useParams } from "react-router-dom";
 import { getContract, requestApproveContract } from "service/BackendApi";
+import domain from "common/common";
 
 const Main = () => {
   const params = useParams();
@@ -23,25 +26,29 @@ const Main = () => {
   const [tx, setTx] = useState([]);
   const [links, setLinks] = useState([]);
   const [status, setStatus] = useState([]);
+  const [tripDate, setTripDate] = useState("");
+  const [aircraft, setAircraft] = useState("");
+  const [filename, setFileName] = useState("");
 
   useEffect(() => {
     getContract(params.id, cbGetContract);
   }, []);
 
   const onApproveAll = () => {
-    if (name !== "") {
-      requestApproveContract(params.id, name, cbRequestApproveContract);
-    }
-    else toast("Please type your name");
+    requestApproveContract(params.id, name, cbRequestApproveContract);
   };
 
   const cbRequestApproveContract = (data) => {
-    if(data.success == true){
+    if (data.success == true) {
       setAllApproved(true);
       setName(data.signed_by);
-      setTimeApproved((new Date(data.signed_time)).toLocaleDateString() + " " + (new Date(data.signed_time)).toLocaleTimeString());
+      setTimeApproved(
+        new Date(data.signed_time).toLocaleDateString() +
+          " " +
+          new Date(data.signed_time).toLocaleTimeString()
+      );
     }
-  }
+  };
 
   const cbGetContract = (data) => {
     if (data) {
@@ -58,13 +65,20 @@ const Main = () => {
       setLinks(links);
       setStatus(status);
       setSum(data.sum);
-      if(data.signed_by !== "" && data.signed_time !== null){
+      setAircraft(data.aircraft);
+      setTripDate(data.date);
+      setFileName(data.filename);
+      if (data.signed_by !== "" && data.signed_time !== null) {
         setApproveContract(true);
         setApprovePrivacyPolicy(true);
         setApproveCancelPolicy(true);
         setAllApproved(true);
         setName(data.signed_by);
-        setTimeApproved((new Date(data.signed_time)).toLocaleDateString() + " " + (new Date(data.signed_time)).toLocaleTimeString());
+        setTimeApproved(
+          new Date(data.signed_time).toLocaleDateString() +
+            " " +
+            new Date(data.signed_time).toLocaleTimeString()
+        );
       }
     }
   };
@@ -74,11 +88,35 @@ const Main = () => {
         maxWidth: "600px",
         margin: "auto",
         display: sum ? "block" : "none",
-        padding: 2
+        padding: 2,
       }}
     >
       <Toaster />
       <h1>Welcome to AMC Aviation Payment</h1>
+      <Box>
+        <h3>Trip Details</h3>
+        <Grid container>
+          <Grid xs={6} textAlign="right">
+            <Typography>Quote ID: </Typography>
+          </Grid>
+          <Grid xs={6} textAlign="left" sx={{ pl: 2 }}>
+            <Typography>{params.id.slice(0, 8)}</Typography>
+          </Grid>
+          <Grid xs={6} textAlign="right">
+            <Typography>Date: </Typography>
+          </Grid>
+          <Grid xs={6} textAlign="left" sx={{ pl: 2 }}>
+            <Typography>{tripDate}</Typography>
+          </Grid>
+          <Grid xs={6} textAlign="right">
+            <Typography>Aircraft: </Typography>
+          </Grid>
+          <Grid xs={6} textAlign="left" sx={{ pl: 2 }}>
+            <Typography>{aircraft}</Typography>
+          </Grid>
+        </Grid>
+      </Box>
+      <Divider sx={{ mt: 2, mb: 2 }}></Divider>
       <Typography>
         I hereby denote that I received, read and acknowledge
       </Typography>
@@ -95,7 +133,9 @@ const Main = () => {
               setApproveContract(!approveContract);
             }}
           ></Checkbox>
-          Contract
+          <a target="_blank" href={"http://" + domain + "/" + filename}>
+            Contract
+          </a>
         </Grid>
         <Grid item xs={12}>
           <Checkbox
@@ -105,7 +145,12 @@ const Main = () => {
               setApproveCancelPolicy(!approveCancelPolicy);
             }}
           ></Checkbox>
-          Cancellation Policy
+          <a
+            target="_blank"
+            href={"http://" + domain + "/cancellation_policy.pdf"}
+          >
+            Cancellation Policy
+          </a>
         </Grid>
         <Grid item xs={12}>
           <Checkbox
@@ -115,7 +160,9 @@ const Main = () => {
               setApprovePrivacyPolicy(!approvePrivacyPolicy);
             }}
           ></Checkbox>
-          Privacy Policy
+          <a target="_blank" href={"http://" + domain + "/privacy_policy.pdf"}>
+            Privacy Policy
+          </a>
         </Grid>
       </Grid>
       <TextField
@@ -124,24 +171,30 @@ const Main = () => {
         size="small"
         value={name}
         onChange={(e) => setName(e.target.value)}
-        sx={{display: allApproved ? "none" : "initial"}}
+        sx={{ display: allApproved ? "none" : "initial" }}
       ></TextField>
-      <Button
-        disabled={allApproved}
-        onClick={(e) => onApproveAll()}
-        sx={{
-          visibility:
-            approveContract && approveCancelPolicy && approvePrivacyPolicy
-              ? "visible"
-              : "hidden",
-        }}
-      >
-        {allApproved ? "Accepted by " + name + " at " + timeApproved : "Save & Proceed"}
+      <Button disabled={allApproved} onClick={(e) => onApproveAll()}>
+        {allApproved ? (
+          "Accepted by " + name + " at " + timeApproved
+        ) : (
+          <Fade
+            in={
+              approveContract &&
+              approveCancelPolicy &&
+              approvePrivacyPolicy &&
+              name != ""
+            }
+          >
+            <Typography>Save & Proceed</Typography>
+          </Fade>
+        )}
       </Button>
 
       <Box sx={{ mt: 2, display: allApproved ? "block" : "none" }}>
         <Typography>
-          {tx.length > 1 ? "Due to online payment limits, there more than one payments are required. To pay, click one by one." : "To pay, click the link below."}
+          {tx.length > 1
+            ? "Due to online payment limits, there more than one payments are required. To pay, click one by one."
+            : "To pay, click the link below."}
         </Typography>
         <Grid container sx={{ mt: 3 }}>
           <Grid item xs={6} md={6} sx={{ textAlign: "right", pr: 3 }}>
@@ -164,7 +217,9 @@ const Main = () => {
                 {status[index] == "Completed" ? (
                   "Paid"
                 ) : (
-                  <a href={links[index]} target="_blank">[Link{index + 1}]</a>
+                  <a href={links[index]} target="_blank">
+                    [Link{index + 1}]
+                  </a>
                 )}
               </Grid>
             </Grid>

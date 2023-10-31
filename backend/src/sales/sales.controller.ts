@@ -53,6 +53,7 @@ export class SalesController {
     };
     if (file != undefined) {
       ret['data'] = await this.salesService.parseContractData(file.path);      
+      ret['newFileName'] = file.filename;
       ret['success'] = true;
     }
     return ret;

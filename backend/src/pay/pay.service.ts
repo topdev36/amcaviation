@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Like } from 'typeorm';
 import { Contract } from '../entity/contract.entity';
 import { Tx } from '../entity/tx.entity';
-import basePayUrl from 'src/common/common';
+import {basePayUrl} from 'src/common/common';
 
 @Injectable()
 export class PayService {

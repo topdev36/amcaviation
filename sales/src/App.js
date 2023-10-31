@@ -9,8 +9,8 @@ import { gapi } from "gapi-script";
 // import useAuth from "hooks/useAuth"
 // import { AuthProvider } from "context/AuthContext";
 const gClientId =
-  //   "339776108293-rinl0ka6o8f89lnuqdjvp8trcalev72u.apps.googleusercontent.com";
-  "339776108293-ogvu8s3rg1tlnhq76puodbjsp0ne3878.apps.googleusercontent.com";
+    "339776108293-rinl0ka6o8f89lnuqdjvp8trcalev72u.apps.googleusercontent.com";
+  // "339776108293-ogvu8s3rg1tlnhq76puodbjsp0ne3878.apps.googleusercontent.com";
 
 const myTheme = createTheme({
   typography: {

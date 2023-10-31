@@ -29,6 +29,7 @@ function AddDialog(props) {
   const [arrTx, setTx] = useState([]);
   const [sumTx, setTxSum] = useState(-1);
   const [isLoading, setIsLoading] = useState(false);
+  const [newFileName, setNewFileName] = useState("");
   const inputFile = useRef(null);
 
   function handleFileChange(event) {
@@ -101,6 +102,7 @@ function AddDialog(props) {
       aircraft: aircraft,
       sum: sum,
       txs: arrTx,
+      file: newFileName
     };
     setIsLoading(true);
     requestPaymentLink(params, cbGenerate);
@@ -123,6 +125,14 @@ function AddDialog(props) {
       arrTx: arrTx,
       status: new Array(arrTx.length).fill("Pending"),
     };
+    setSum("");
+    setTxSum(0);
+    setEmail("");
+    setDate("");
+    setAircraft("");
+    setQuoteID("");
+    setNewFileName("");
+    setTx([]);
     onClose(ret);
   };
 
@@ -137,7 +147,6 @@ function AddDialog(props) {
       toast("Existing contract.");
       return;
     }
-
     setAircraft(data.aircraft);
     setSum(Number(data.sum));
     setDate(data.date);
@@ -146,6 +155,7 @@ function AddDialog(props) {
     setTx([Number(data.sum)]);
     setTxSum(Number(data.sum));
     setCreation(data.creation);
+    setNewFileName(resp.newFileName);
   };
 
   return (

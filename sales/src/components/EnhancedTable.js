@@ -337,15 +337,20 @@ export default function EnhancedTable({ headCells, rowData, onDeleteRows }) {
                         </TableCell>
                       ) : (
                         <TableCell align="center">
-                          {key == "signed_time" ? ( row[key] == null ? "" :
-                            new Date(row[key]).toLocaleDateString() +
-                            " " +
-                            new Date(row[key]).toLocaleTimeString()
+                          {key == "signed_time" ? (
+                            row[key] == null ? (
+                              ""
+                            ) : (
+                              new Date(row[key]).toLocaleDateString() +
+                              " " +
+                              new Date(row[key]).toLocaleTimeString()
+                            )
                           ) : key !== "link" ? (
                             row[key].toString()
                           ) : (
                             <>
                               <a
+                                target="_blank"
                                 href={row[key]}
                                 onClick={(e) => {
                                   e.stopPropagation();

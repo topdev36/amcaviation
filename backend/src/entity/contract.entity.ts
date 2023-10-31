@@ -28,6 +28,9 @@ export class Contract {
   link: string;
 
   @Column()
+  filename: string;
+
+  @Column()
   signed_by: string;
 
   @Column()

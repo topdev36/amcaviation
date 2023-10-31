@@ -5,7 +5,7 @@ import { Contract } from '../entity/contract.entity';
 import { Tx } from '../entity/tx.entity';
 import { GeneratePayLinkDto } from 'src/dto/generate-paylink';
 import { DeleteContractsDto } from 'src/dto/delete-contract';
-import basePayUrl from 'src/common/common';
+import {basePayUrl} from 'src/common/common';
 // import * as bcrypt from 'bcrypt';
 const fs = require('fs');
 const pdfParser = require('pdf-parse');
@@ -17,8 +17,7 @@ export class SalesService {
     private contractsRepository: Repository<Contract>,
     @InjectRepository(Tx)
     private txsRepository: Repository<Tx>,
-  ) {
-  }
+  ) {}
 
   async parseContractData(path) {
     const ptnSum = 'Total:€',
@@ -30,7 +29,6 @@ export class SalesService {
     let ret = {};
     let dataBuffer = fs.readFileSync(path);
     let parsedData = await pdfParser(dataBuffer);
-    // console.log(parsedData);
     const text = parsedData.text;
     ret['sum'] = text.slice(text.indexOf(ptnSum) + ptnSum.length);
     ret['sum'] = ret['sum'].slice(0, ret['sum'].indexOf('\n'));
@@ -42,7 +40,7 @@ export class SalesService {
     );
     ret['date'] = text.slice(text.indexOf(ptnDate) + ptnDate.length);
     ret['date'] = ret['date'].slice(0, ret['date'].search(/[a-zA-Z ]/));
-    ret['date'] = ret['date'].slice(0, 8) + " " + ret['date'].slice(8);
+    ret['date'] = ret['date'].slice(0, 8) + ' ' + ret['date'].slice(8);
 
     ret['aircraft'] = text.slice(
       text.indexOf(ptnAircraft) + ptnAircraft.length,
@@ -59,14 +57,13 @@ export class SalesService {
       ret['creation'].indexOf(' UTC\n'),
     );
 
-    ret['email'] = text.slice(text.indexOf(ptnEmail) + ptnEmail.length);    
+    ret['email'] = text.slice(text.indexOf(ptnEmail) + ptnEmail.length);
     ret['email'] = ret['email'].slice(
       ret['email'].indexOf(ptnEmail) + ptnEmail.length,
     );
     ret['email'] = ret['email'].slice(0, ret['email'].indexOf(ptnAircraft) - 1);
-    ret['email'] = ret['email'].slice(ret['email'].lastIndexOf("\n"));
+    ret['email'] = ret['email'].slice(ret['email'].lastIndexOf('\n') + 1);
 
-    fs.unlinkSync(path);
     return ret;
   }
 
@@ -89,6 +86,7 @@ export class SalesService {
     contract['sum'] = dto.sum;
     contract['email'] = dto.email;
     contract['link'] = newLink;
+    contract['filename'] = dto.file;
     this.addContract(contract, dto.txs, newID);
     ret['success'] = true;
     ret['link'] = newLink;
@@ -97,20 +95,20 @@ export class SalesService {
 
   async addContract(contract: Contract, txs: [], newID) {
     let ret = await this.contractsRepository.save(contract);
-    
+
     txs.map((tx, index) => {
-        let transaction = new Tx();
-        var newLink = basePayUrl + newID + "/" + (index + 1);
-        transaction.amount = tx;
-        transaction.link = newLink;
-        transaction.status = "Pending";
-        transaction.quote_id = contract.quote_id;
-        transaction.contractId = ret.id;
-        this.addTx(transaction);
-    })
+      let transaction = new Tx();
+      var newLink = basePayUrl + newID + '/' + (index + 1);
+      transaction.amount = tx;
+      transaction.link = newLink;
+      transaction.status = 'Pending';
+      transaction.quote_id = contract.quote_id;
+      transaction.contractId = ret.id;
+      this.addTx(transaction);
+    });
   }
 
-  addTx(tx: Tx){
+  addTx(tx: Tx) {
     this.txsRepository.save(tx);
   }
 
@@ -118,22 +116,29 @@ export class SalesService {
     return await this.contractsRepository.findOneBy({ quote_id: quote_id });
   }
 
-  async getAllContracts(){
-    let ret = await this.contractsRepository.find({relations: ['txs']});    
+  async getAllContracts() {
+    let ret = await this.contractsRepository.find({ relations: ['txs'] });
     return ret;
   }
 
-  async deleteContracts(data: DeleteContractsDto){
+  async deleteContracts(data: DeleteContractsDto) {
     let ret = {
-        success: false
-    }
+      success: false,
+    };
     let quote_ids = data.quote_ids;
-    
-    await this.contractsRepository.delete({quote_id: In(quote_ids)});
-    await this.txsRepository.delete({quote_id: In(quote_ids)});
-    
+
+    let contractsToDelete = await this.contractsRepository.find({
+      where: { quote_id: In(quote_ids) },
+    });
+    contractsToDelete.map((contract, index) => {
+      fs.unlinkSync('files/' + contract.filename);
+      return 0;
+    });
+    await this.contractsRepository.delete({ quote_id: In(quote_ids) });
+    await this.txsRepository.delete({ quote_id: In(quote_ids) });
+
     ret['numDeleted'] = quote_ids.length;
     ret.success = true;
-    return ret;    
+    return ret;
   }
 }
