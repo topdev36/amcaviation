@@ -16,7 +16,6 @@ const Payment = () => {
   }, []);
 
   const cbGetTxInfo = (res) => {
-    console.log(res);
     if (res) {
       setAmount(res.amount);
       setStatus(res.status);

@@ -6,6 +6,9 @@ import { Tx } from '../entity/tx.entity';
 import { GeneratePayLinkDto } from 'src/dto/generate-paylink';
 import { DeleteContractsDto } from 'src/dto/delete-contract';
 import {basePayUrl} from 'src/common/common';
+import { HttpService } from '@nestjs/axios';
+import { PAYNOW_API_KEY, PAYNOW_SIGN_KEY } from 'src/common/keys';
+
 // import * as bcrypt from 'bcrypt';
 const fs = require('fs');
 const pdfParser = require('pdf-parse');
@@ -17,6 +20,7 @@ export class SalesService {
     private contractsRepository: Repository<Contract>,
     @InjectRepository(Tx)
     private txsRepository: Repository<Tx>,
+    private readonly httpService: HttpService
   ) {}
 
   async parseContractData(path) {
@@ -96,16 +100,25 @@ export class SalesService {
   async addContract(contract: Contract, txs: [], newID) {
     let ret = await this.contractsRepository.save(contract);
 
-    txs.map((tx, index) => {
+    for(var index = 0; index < txs.length; index++){
+      let tx = txs[index];
       let transaction = new Tx();
       var newLink = basePayUrl + newID + '/' + (index + 1);
+      let resp = await this.httpService.post("https://api.sandbox.paynow.pl/v1/payments", {
+        "amount": 45671,
+        "externalId": "234567898654",
+        "description": "Test transaction",
+        "buyer": {
+            "email": contract.email
+        }}, {"headers": {"Host": "api.sandbox.paynow.pl", "Accept": "*/*", "Content-Type": "application/json", "Api-Key": PAYNOW_API_KEY, "Signature": PAYNOW_SIGN_KEY, "Idempotency-Key": "59c6dd26-f905-487b-96c9-fd1d2bd76885" }});
+        console.log(resp);
       transaction.amount = tx;
       transaction.link = newLink;
       transaction.status = 'Pending';
       transaction.quote_id = contract.quote_id;
       transaction.contractId = ret.id;
       this.addTx(transaction);
-    });
+    }
   }
 
   addTx(tx: Tx) {

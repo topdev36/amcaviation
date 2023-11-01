@@ -69,6 +69,8 @@ function AddDialog(props) {
     let newArrTx = [...arrTx];
     let tmpSum = 0;
     let value = Number(e.target.value);
+    if(value < 0)
+      return;
     newArrTx[index] = value;
     newArrTx.forEach((num) => {
       tmpSum += num;

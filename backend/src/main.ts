@@ -8,6 +8,8 @@ var corsOptions = {
 	origin: [
 		"http://" + domain + ":3001",
     "http://" + domain + ":3002",
+		"http://localhost:3001",
+    "http://localhost:3002",
 	],
 	credentials: true,
 };
@@ -21,7 +23,7 @@ async function bootstrap() {
       secret: '1234567890abcdeusdffweradfweradfewrasdfasdfasdfqwerwe',
       resave: false,
       saveUninitialized: true,
-      cookie: {secure: false}
+      cookie: {secure: false, maxAge: 1800000},
     }),
   );
   await app.listen(8006);

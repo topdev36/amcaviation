@@ -8,8 +8,8 @@ import { Contract} from './entity/contract.entity';
 import { Tx} from './entity/tx.entity';
 import { AuthMiddleWare } from './common/middle/auth.middleware';
 import { ServeStaticModule } from '@nestjs/serve-static';
-import { LoginController } from './login/login.controller';
 import { LoginModule } from './login/login.module';
+import { User } from './entity/user.entity';
 
 @Module({
   imports: [
@@ -22,7 +22,7 @@ import { LoginModule } from './login/login.module';
       username: 'root',
       password: '',
       database: 'test',
-      entities: [Contract, Tx],
+      entities: [Contract, Tx, User],
       // synchronize: true,
     }),
     ServeStaticModule.forRoot({
@@ -30,7 +30,7 @@ import { LoginModule } from './login/login.module';
     }),
     LoginModule,
   ],
-  controllers: [AppController, LoginController],
+  controllers: [AppController],
   providers: [AppService],
 })
 
