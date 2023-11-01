@@ -1,5 +1,4 @@
-const basePayUrl = "http://192.168.131.212:3002/";
-const domainsales = "192.168.131.212:3001";
-const domainpay = "192.168.131.212:3002";
+const basePayUrl = "http://192.168.131.212:3002";
+const baseSalesUrl = "http://192.168.131.212:3001";
 
-export {domainsales, domainpay, basePayUrl};
+export {baseSalesUrl, basePayUrl};

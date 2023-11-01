@@ -81,7 +81,7 @@ export class SalesService {
     // let newHash = await bcrypt.hash(dto.quote_id, salt);
     // newHash = atob(newHash.slice(10, 25));
     var newID = dto.quote_id + Date.now();
-    var newLink = basePayUrl + newID;
+    var newLink = basePayUrl + "/" + newID;
     let contract = new Contract();
     contract['quote_id'] = dto.quote_id;
     contract['creation'] = dto.creation;
@@ -103,7 +103,7 @@ export class SalesService {
     for(var index = 0; index < txs.length; index++){
       let tx = txs[index];
       let transaction = new Tx();
-      var newLink = basePayUrl + newID + '/' + (index + 1);
+      var newLink = basePayUrl + "/" + newID + '/' + (index + 1);
       let resp = await this.httpService.post("https://api.sandbox.paynow.pl/v1/payments", {
         "amount": 45671,
         "externalId": "234567898654",

@@ -1,13 +1,13 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import * as session from 'express-session';
-import {domainsales, domainpay} from "src/common/common";
+import {baseSalesUrl, basePayUrl} from "src/common/common";
 const cors = require("cors");
 
 var corsOptions = {
 	origin: [
-		"http://" + domainsales,
-    "http://" + domainpay,
+		basePayUrl,
+    baseSalesUrl,
 		"http://localhost:3001",
     "http://localhost:3002",
 	],
