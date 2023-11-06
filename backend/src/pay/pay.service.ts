@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Like } from 'typeorm';
 import { Contract } from '../entity/contract.entity';
 import { Tx } from '../entity/tx.entity';
-import {basePayUrl} from 'src/common/common';
+import {basePayUrl, urlPrefix} from 'src/common/common';
 
 @Injectable()
 export class PayService {
@@ -14,22 +14,22 @@ export class PayService {
     private txsRepository: Repository<Tx>,
   ) {}
   async findContractUniqueID(id: string) {
-    return await this.contractsRepository.findOne({relations: ['txs'], where: {link: basePayUrl + id}});
+    return await this.contractsRepository.findOne({relations: ['txs'], where: {link: urlPrefix + basePayUrl + "/#/" + id}});
   }
 
   findTx(id, txid){
-    return this.txsRepository.findOne({where: {quote_id: id.substring(0, 8), link: basePayUrl + id + "/" + txid}});
+    return this.txsRepository.findOne({where: {quote_id: id.substring(0, 8), link: urlPrefix + basePayUrl + "/#/" + id + "/" + txid}});
   }
 
   async signContract(id, name){
     let ret = {
         success: false
     };
-    let contract = await this.contractsRepository.findOne({where: {link: basePayUrl + id, signed_by: "", signed_time: null}});
+    let contract = await this.contractsRepository.findOne({where: {link: urlPrefix + basePayUrl + "/#/" + id, signed_by: null, signed_time: null}});
     
     if(contract != null){
         let time = new Date();
-        await this.contractsRepository.update({link: basePayUrl + id}, {signed_by: name, signed_time: time});
+        await this.contractsRepository.update({link: urlPrefix + basePayUrl + "/#/" + id}, {signed_by: name, signed_time: time});
 
         ret['success'] = true;
         ret['signed_by'] = name;

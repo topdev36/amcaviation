@@ -10,6 +10,7 @@ import { gapi } from "gapi-script";
 import { login, logout } from "service/BackendApi";
 import { useState } from "react";
 import { useCookies } from "react-cookie";
+import toast, { Toaster } from "react-hot-toast";
 
 // import useAuth from "hooks/useAuth"
 // import { AuthProvider } from "context/AuthContext";
@@ -58,6 +59,8 @@ function App() {
         setCookie("statusLogin", 3);      
       else
         setCookie("statusLogin", 1);      
+    }else{
+      toast("Not registered user.");
     }
     // try {
     // 	let success = await login(gdata.email, 2, {
@@ -75,7 +78,8 @@ function App() {
     <ThemeProvider theme={myTheme}>
       {/* <AuthProvider> */}
       <div className="App">
-        <Header></Header>
+        <Toaster />
+        <Header onLogout={() => setCookie("statusLogin", 0)} isLoggedIn = {cookies.statusLogin == 2}></Header>
         {cookies.statusLogin == 2 ? (
           <Contract></Contract>
         ) : cookies.statusLogin == 1 || cookies.statusLogin == 3 ? (

@@ -104,7 +104,8 @@ function AddDialog(props) {
       aircraft: aircraft,
       sum: sum,
       txs: arrTx,
-      file: newFileName
+      file: newFileName,
+      email: email
     };
     setIsLoading(true);
     requestPaymentLink(params, cbGenerate);

@@ -5,13 +5,18 @@ import { Contract } from '../entity/contract.entity';
 import { Tx } from '../entity/tx.entity';
 import { GeneratePayLinkDto } from 'src/dto/generate-paylink';
 import { DeleteContractsDto } from 'src/dto/delete-contract';
-import {basePayUrl} from 'src/common/common';
+import { basePayUrl, urlPrefix } from 'src/common/common';
 import { HttpService } from '@nestjs/axios';
-import { PAYNOW_API_KEY, PAYNOW_SIGN_KEY } from 'src/common/keys';
+import { catchError, lastValueFrom, firstValueFrom } from 'rxjs';
+import { AUTOPAY_KEY } from 'src/common/keys';
+const { XMLParser, XMLBuilder, XMLValidator} = require("fast-xml-parser");
 
+const crypto = require('crypto');
 // import * as bcrypt from 'bcrypt';
 const fs = require('fs');
 const pdfParser = require('pdf-parse');
+
+const addressStartPay = "https://testpay.autopay.eu/payment";
 
 @Injectable()
 export class SalesService {
@@ -20,8 +25,90 @@ export class SalesService {
     private contractsRepository: Repository<Contract>,
     @InjectRepository(Tx)
     private txsRepository: Repository<Tx>,
-    private readonly httpService: HttpService
+    private readonly httpService: HttpService,
   ) {}
+
+  // async test() {
+  //   let data = {
+  //     amount: 1517,
+  //     externalId: '99b09681-2fa8-4e0d-bf87-2aeeca2807b6', //'234567898654',
+  //     description: 'Test transaction',
+  //     currency: 'EUR',
+  //     buyer: {
+  //       email: 'jan.kowalski@melements.pl',
+  //     },
+  //   };
+  //   let signature = crypto
+  //     .createHmac('sha256', '14260cfa-9c78-4f38-850f-de5224c95d97')
+  //     .update(JSON.stringify(data))
+  //     .digest('base64');
+  //   let header = {
+  //     'Api-Key': '693f5aa4-4ebb-4673-96e6-9735f4fdedb7',
+  //     'Signature': signature,
+  //     'Idempotency-Key': '213asdfasdf2134asdfasdf2134334',
+  //     'Content-Type': 'application/json',
+  //   };
+
+  //   let resp = await firstValueFrom(
+  //     this.httpService
+  //       .post(
+  //         'https://api.sandbox.paynow.pl/v1/payments',
+  //         data,
+  //         {
+  //           headers: header,
+  //         },
+  //       )
+  //       .pipe(
+  //         catchError((e) => {
+  //           console.log(e);
+  //           throw 'error';
+  //         }),
+  //       ),
+  //   );
+  //   return resp;
+  // }
+
+  async generateTxLink() {
+    let data = {
+      ServiceID: '1000351',
+      OrderID: 'ISSx074725506112023xAPRANDOMTES2',
+      Amount: '2579.00',
+      GatewayID: '0',
+      Currency: 'EUR',
+      CustomerEmail: 'test@test.com'
+    };
+    let dataToHash = Object.keys(data).map((key, index) => data[key] );
+    dataToHash.push(AUTOPAY_KEY);    
+    
+    let signature = crypto
+      .createHash('sha256')
+      .update(dataToHash.join('|'))
+      .digest('hex');    
+    console.log(signature);
+    data['Hash'] = signature;
+
+    let header = {
+      'BmHeader': 'pay-bm-continue-transaction-url',
+      'Content-Type': 'application/x-www-form-urlencoded',
+    };
+
+    let resp = await firstValueFrom(
+      this.httpService
+        .post(addressStartPay, data, {
+          headers: header,
+        })
+        .pipe(
+          catchError((e) => {
+            console.log(e);
+            throw 'error';
+          }),
+        ),
+    );
+    const parser = new XMLParser();
+    let jObj = parser.parse(resp['data']);
+    
+    return jObj['transaction'];
+  }
 
   async parseContractData(path) {
     const ptnSum = 'Total:€',
@@ -72,16 +159,14 @@ export class SalesService {
   }
 
   async generatePayLink(dto: GeneratePayLinkDto) {
+    console.log(await this.generateTxLink());
     let ret = {
       success: false,
     };
     let isNewContract = !(await this.findContractByQuoteID(dto.quote_id));
     if (!isNewContract) return ret;
-    // const salt = await bcrypt.genSalt();
-    // let newHash = await bcrypt.hash(dto.quote_id, salt);
-    // newHash = atob(newHash.slice(10, 25));
     var newID = dto.quote_id + Date.now();
-    var newLink = basePayUrl + "/" + newID;
+    var newLink = urlPrefix + basePayUrl + '/#/' + newID;
     let contract = new Contract();
     contract['quote_id'] = dto.quote_id;
     contract['creation'] = dto.creation;
@@ -100,18 +185,11 @@ export class SalesService {
   async addContract(contract: Contract, txs: [], newID) {
     let ret = await this.contractsRepository.save(contract);
 
-    for(var index = 0; index < txs.length; index++){
+    for (var index = 0; index < txs.length; index++) {
       let tx = txs[index];
       let transaction = new Tx();
-      var newLink = basePayUrl + "/" + newID + '/' + (index + 1);
-      let resp = await this.httpService.post("https://api.sandbox.paynow.pl/v1/payments", {
-        "amount": 45671,
-        "externalId": "234567898654",
-        "description": "Test transaction",
-        "buyer": {
-            "email": contract.email
-        }}, {"headers": {"Host": "api.sandbox.paynow.pl", "Accept": "*/*", "Content-Type": "application/json", "Api-Key": PAYNOW_API_KEY, "Signature": PAYNOW_SIGN_KEY, "Idempotency-Key": "59c6dd26-f905-487b-96c9-fd1d2bd76885" }});
-        console.log(resp);
+      var newLink = urlPrefix + basePayUrl + '/#/' + newID + '/' + (index + 1);
+
       transaction.amount = tx;
       transaction.link = newLink;
       transaction.status = 'Pending';
@@ -144,7 +222,9 @@ export class SalesService {
       where: { quote_id: In(quote_ids) },
     });
     contractsToDelete.map((contract, index) => {
-      fs.unlinkSync('files/' + contract.filename);
+      try {
+        fs.unlinkSync('apps/' + contract.filename);
+      } catch (e) {}
       return 0;
     });
     await this.contractsRepository.delete({ quote_id: In(quote_ids) });

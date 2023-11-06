@@ -10,6 +10,7 @@ import { AuthMiddleWare } from './common/middle/auth.middleware';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { LoginModule } from './login/login.module';
 import { User } from './entity/user.entity';
+import { PaystatModule } from './paystat/paystat.module';
 
 @Module({
   imports: [
@@ -19,16 +20,22 @@ import { User } from './entity/user.entity';
       type: 'mysql',
       host: 'localhost',
       port: 3306,
+      // username: 'test',
+      // password: 'sOBNf35zv3YO0ZR7iWu3',
       username: 'root',
       password: '',
       database: 'test',
       entities: [Contract, Tx, User],
       // synchronize: true,
     }),
+    // ServeStaticModule.forRoot({
+    //   rootPath: "files",
+    // }),    
     ServeStaticModule.forRoot({
-      rootPath: "files",
+      rootPath: "apps",
     }),
     LoginModule,
+    PaystatModule,
   ],
   controllers: [AppController],
   providers: [AppService],

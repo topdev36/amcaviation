@@ -30,7 +30,7 @@ const editFileName = (req, file, callback) => {
     .fill(null)
     .map(() => Math.round(Math.random() * 16).toString(16))
     .join('');
-  callback(null, `${name}-${randomName}${fileExtName}`);
+  callback(null, `${Date.now()}-${randomName}${fileExtName}`);
 };
 
 @Controller('sales')
@@ -41,7 +41,7 @@ export class SalesController {
   @UseInterceptors(
     FileInterceptor('file', {
       storage: diskStorage({
-        destination: './files',
+        destination: './apps',
         filename: editFileName,
       }),
       fileFilter: pdfFileFilter,
@@ -81,5 +81,9 @@ export class SalesController {
   google(@Req() req){
     console.log("aaa");
     return "bbb";
+  }
+
+  @Get('test')
+  async test(){    
   }
 }

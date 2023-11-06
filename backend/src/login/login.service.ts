@@ -61,7 +61,6 @@ export class LoginService {
     if(secret === "")
         secret = user.secret_2fa;
     let ret = {success: false};
-    
     if(authenticator.verify({token: code, secret: secret})){
         if(user.secret_2fa === "")
             await this.usersRepository.update({id: userId}, {secret_2fa: secret, last_login_time: new Date()});

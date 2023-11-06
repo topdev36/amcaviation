@@ -346,7 +346,7 @@ export default function EnhancedTable({ headCells, rowData, onDeleteRows }) {
                               new Date(row[key]).toLocaleTimeString()
                             )
                           ) : key !== "link" ? (
-                            row[key].toString()
+                            row[key]
                           ) : (
                             <>
                               <a

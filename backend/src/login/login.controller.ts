@@ -22,13 +22,17 @@ export class LoginController {
             request.session['secret'] = ret['secret'];
             request.session['verfied2FA'] = false;
         }
-        console.log(request.session.id, request.session);
         return ret;
+    }
+
+    @Post("logout")
+    logout(@Req() request){
+        request.session['userId'] = undefined;
+        return {success: true};
     }
 
     @Post("verify2fa")
     async verify2FA(@Body() data, @Req() request: Request){
-        console.log(request.session);
         if(!request.session['userId'])
             return {success: false};
         let ret = await this.loginService.verify2fa(data.code, request.session['userId'], request.session['secret']);

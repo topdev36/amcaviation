@@ -1,5 +1,5 @@
 import { ThemeProvider, createTheme } from "@mui/material/styles";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { HashRouter, Routes, Route } from "react-router-dom";
 import "App.css";
 import { useEffect } from "react";
 import Header from "components/Header";
@@ -24,12 +24,12 @@ function App() {
        */}
       <div className="App">
         <Header></Header>
-        <BrowserRouter>
+        <HashRouter>
           <Routes>
             <Route path="/:id" element={<Main />} />
             <Route path="/:id/:txid" element={<Payment />} />
           </Routes>
-        </BrowserRouter>
+        </HashRouter>
       </div>
       {/* </AuthProvider> */}
     </ThemeProvider>

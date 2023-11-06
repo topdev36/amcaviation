@@ -133,7 +133,7 @@ const Main = () => {
               setApproveContract(!approveContract);
             }}
           ></Checkbox>
-          <a target="_blank" href={"http://" + domain + "/" + filename}>
+          <a target="_blank" href={"https://" + domain + "/" + filename}>
             Contract
           </a>
         </Grid>
@@ -147,7 +147,7 @@ const Main = () => {
           ></Checkbox>
           <a
             target="_blank"
-            href={"http://" + domain + "/cancellation_policy.pdf"}
+            href={"https://" + domain + "/cancellation_policy.pdf"}
           >
             Cancellation Policy
           </a>
@@ -160,7 +160,7 @@ const Main = () => {
               setApprovePrivacyPolicy(!approvePrivacyPolicy);
             }}
           ></Checkbox>
-          <a target="_blank" href={"http://" + domain + "/privacy_policy.pdf"}>
+          <a target="_blank" href={"https://" + domain + "/privacy_policy.pdf"}>
             Privacy Policy
           </a>
         </Grid>

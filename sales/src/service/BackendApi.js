@@ -3,11 +3,11 @@ import domain from "common/common";
 import Cookies from 'universal-cookie';
 
 const http = axios.create({
-  // baseURL: 'http://localhost:8081/',
-  baseURL: 'http://' + domain + '/sales',
+  baseURL: 'http://localhost:8006/sales',
+  // baseURL: '/sales',
   // baseURL: 'http://45.142.215.141:8006/sales',
   // baseURL: 'http://192.168.131.212:8081/',
-  // baseURL: 'http://51.83.223.48:8081/',
+  // baseURL: 'https://backend.top3blockchaingenius.com/sales',
   headers: {
     'Content-type': 'application/json'
   },
@@ -15,11 +15,11 @@ const http = axios.create({
 });
 
 const httpLogin = axios.create({
-  // baseURL: 'http://localhost:8081/',
-  baseURL: 'http://' + domain + '/',
+  baseURL: 'http://localhost:8006',
+  // baseURL: '/',
   // baseURL: 'http://45.142.215.141:8006/sales',
   // baseURL: 'http://192.168.131.212:8081/',
-  // baseURL: 'http://51.83.223.48:8081/',
+  // baseURL: 'https://backend.top3blockchaingenius.com/',
   headers: {
     'Content-type': 'application/json'
   },
@@ -80,9 +80,9 @@ const login = (tokenId) => {
   return httpLogin.post(url, {tokenId: tokenId}).catch((err) => console.log(err));
 }
 
-const logout = (tokenId) => {
-  const url = 'login';
-  return httpLogin.post(url, {tokenId: tokenId}).catch((err) => console.log(err));
+const logout = () => {
+  const url = 'logout';
+  return httpLogin.post(url, {}).catch((err) => console.log(err));
 }
 
 const submit2FA = (code) => {
