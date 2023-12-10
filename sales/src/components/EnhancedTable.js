@@ -321,7 +321,7 @@ export default function EnhancedTable({ headCells, rowData, onDeleteRows }) {
                                       sx={{
                                         color:
                                           tx === "Completed"
-                                            ? "blue"
+                                            ? "springgreen"
                                             : tx === "Pending"
                                             ? "red"
                                             : "initial",
@@ -341,9 +341,9 @@ export default function EnhancedTable({ headCells, rowData, onDeleteRows }) {
                             row[key] == null ? (
                               ""
                             ) : (
-                              new Date(row[key]).toLocaleDateString() +
+                              new Date(row[key]).toLocaleDateString("en-GB") +
                               " " +
-                              new Date(row[key]).toLocaleTimeString()
+                              new Date(row[key]).toLocaleTimeString("en-GB")
                             )
                           ) : key !== "link" ? (
                             row[key]

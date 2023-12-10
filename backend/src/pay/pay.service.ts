@@ -17,10 +17,6 @@ export class PayService {
     return await this.contractsRepository.findOne({relations: ['txs'], where: {link: urlPrefix + basePayUrl + "/#/" + id}});
   }
 
-  findTx(id, txid){
-    return this.txsRepository.findOne({where: {quote_id: id.substring(0, 8), link: urlPrefix + basePayUrl + "/#/" + id + "/" + txid}});
-  }
-
   async signContract(id, name){
     let ret = {
         success: false

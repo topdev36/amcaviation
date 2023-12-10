@@ -9,14 +9,15 @@ import { basePayUrl, urlPrefix } from 'src/common/common';
 import { HttpService } from '@nestjs/axios';
 import { catchError, lastValueFrom, firstValueFrom } from 'rxjs';
 import { AUTOPAY_KEY } from 'src/common/keys';
-const { XMLParser, XMLBuilder, XMLValidator} = require("fast-xml-parser");
+const { XMLParser } = require('fast-xml-parser');
 
 const crypto = require('crypto');
 // import * as bcrypt from 'bcrypt';
 const fs = require('fs');
 const pdfParser = require('pdf-parse');
 
-const addressStartPay = "https://testpay.autopay.eu/payment";
+const addressStartPay = 'https://testpay.autopay.eu/payment';
+const serviceID = '1000351';
 
 @Injectable()
 export class SalesService {
@@ -68,27 +69,40 @@ export class SalesService {
   //   return resp;
   // }
 
-  async generateTxLink() {
-    let data = {
-      ServiceID: '1000351',
-      OrderID: 'ISSx074725506112023xAPRANDOMTES2',
-      Amount: '2579.00',
-      GatewayID: '0',
-      Currency: 'EUR',
-      CustomerEmail: 'test@test.com'
-    };
-    let dataToHash = Object.keys(data).map((key, index) => data[key] );
-    dataToHash.push(AUTOPAY_KEY);    
-    
+  async generateTxLink(amount, orderId, email, desc) {
+    let data;
+    if (email.indexOf('@') != -1)
+      data = {
+        ServiceID: serviceID,
+        OrderID: orderId,
+        Amount: amount,
+        // Description: desc,
+        GatewayID: '0',
+        Currency: 'EUR',
+        CustomerEmail: email,
+        Language: 'EN',
+      };
+    else
+      data = {
+        ServiceID: serviceID,
+        OrderID: orderId,
+        Amount: amount,        
+        GatewayID: '0',
+        Currency: 'EUR',        
+        Language: 'EN',
+      };
+    let dataToHash = Object.keys(data).map((key, index) => data[key]);
+    dataToHash.push(AUTOPAY_KEY);
+    // console.log(dataToHash,dataToHash.join('|'));
+
     let signature = crypto
       .createHash('sha256')
       .update(dataToHash.join('|'))
-      .digest('hex');    
-    console.log(signature);
+      .digest('hex');
     data['Hash'] = signature;
 
     let header = {
-      'BmHeader': 'pay-bm-continue-transaction-url',
+      BmHeader: 'pay-bm-continue-transaction-url',
       'Content-Type': 'application/x-www-form-urlencoded',
     };
 
@@ -106,7 +120,6 @@ export class SalesService {
     );
     const parser = new XMLParser();
     let jObj = parser.parse(resp['data']);
-    
     return jObj['transaction'];
   }
 
@@ -159,13 +172,12 @@ export class SalesService {
   }
 
   async generatePayLink(dto: GeneratePayLinkDto) {
-    console.log(await this.generateTxLink());
     let ret = {
       success: false,
     };
     let isNewContract = !(await this.findContractByQuoteID(dto.quote_id));
     if (!isNewContract) return ret;
-    var newID = dto.quote_id + Date.now();
+    var newID = dto.quote_id + Date.now().toString();
     var newLink = urlPrefix + basePayUrl + '/#/' + newID;
     let contract = new Contract();
     contract['quote_id'] = dto.quote_id;
@@ -188,12 +200,26 @@ export class SalesService {
     for (var index = 0; index < txs.length; index++) {
       let tx = txs[index];
       let transaction = new Tx();
-      var newLink = urlPrefix + basePayUrl + '/#/' + newID + '/' + (index + 1);
+      let orderId =
+        contract.quote_id + '-' + (Date.now() % 1000000) + (index + 1);
+      let desc =
+        contract.quote_id +
+        ' - Date: ' +
+        contract.date +
+        ' Aircraft: ' +
+        contract.aircraft;
 
+      let txLink = await this.generateTxLink(
+        Number(tx).toFixed(2),
+        orderId,
+        contract.email,
+        desc,
+      );
       transaction.amount = tx;
-      transaction.link = newLink;
+      transaction.link = txLink['redirecturl'];
       transaction.status = 'Pending';
       transaction.quote_id = contract.quote_id;
+      transaction.order_id = txLink['orderID'];
       transaction.contractId = ret.id;
       this.addTx(transaction);
     }

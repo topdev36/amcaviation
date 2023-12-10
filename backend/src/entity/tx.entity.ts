@@ -13,9 +13,12 @@ export class Tx {
   contractId: number;
 
   @Column()
-  link: string;
+  order_id: string;
 
   @Column()
+  link: string;
+
+  @Column("decimal", {precision: 6, scale: 2})
   amount: number;
 
   @Column()

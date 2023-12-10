@@ -25,7 +25,7 @@ function NotifyDialog(props) {
           Payment link generated successfully!
         </Typography>
         <Typography textAlign="center">
-          Link: <a href={paylink}>{paylink}</a>
+          Link: <a href={paylink} target="_blank">{paylink}</a>
           <Button
             onClick={(e) => {
               e.stopPropagation();

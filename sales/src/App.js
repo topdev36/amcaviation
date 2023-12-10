@@ -50,9 +50,7 @@ function App() {
 
   const onGoogleSuccess = async (res) => {
     let gdata = res;
-    console.log("google user selected:", gdata);
     var ret = (await login(gdata.tokenId)).data;
-    console.log(ret);
     if (ret.success) {
       setQRCode(ret.qrcode);
       if(ret.qrcode != "")

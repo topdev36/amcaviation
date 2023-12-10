@@ -47,12 +47,13 @@ export class SalesController {
       fileFilter: pdfFileFilter,
     }),
   )
-  async uploadFile(@UploadedFile() file: Express.Multer.File): Promise<Object> {
+  async uploadFile(@UploadedFile() file: Express.Multer.File, @Body() data): Promise<Object> {    
     var ret = {
       success: false,
     };
     if (file != undefined) {
-      ret['data'] = await this.salesService.parseContractData(file.path);      
+      if(data.isContract == "true")
+        ret['data'] = await this.salesService.parseContractData(file.path);      
       ret['newFileName'] = file.filename;
       ret['success'] = true;
     }

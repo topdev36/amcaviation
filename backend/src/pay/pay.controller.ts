@@ -10,11 +10,6 @@ export class PayController {
         return this.payService.findContractUniqueID(data.quote_id);
     }
 
-    @Post('getTxInfo')
-    getTxInfo(@Body() data) {
-        return this.payService.findTx(data.id, data.txid);
-    }
-
     @Post('signContract')
     signContract(@Body() data){
         return this.payService.signContract(data.id, data.name);

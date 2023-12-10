@@ -28,6 +28,8 @@ const Main = () => {
   const [status, setStatus] = useState([]);
   const [tripDate, setTripDate] = useState("");
   const [aircraft, setAircraft] = useState("");
+  const [quote_id, setQuoteID] = useState("");
+  const [isContractPayment, setIsContract] = useState(true);
   const [filename, setFileName] = useState("");
 
   useEffect(() => {
@@ -43,9 +45,9 @@ const Main = () => {
       setAllApproved(true);
       setName(data.signed_by);
       setTimeApproved(
-        new Date(data.signed_time).toLocaleDateString() +
+        new Date(data.signed_time).toLocaleDateString("en-GB") +
           " " +
-          new Date(data.signed_time).toLocaleTimeString()
+          new Date(data.signed_time).toLocaleTimeString("en-GB")
       );
     }
   };
@@ -68,6 +70,9 @@ const Main = () => {
       setAircraft(data.aircraft);
       setTripDate(data.date);
       setFileName(data.filename);
+      setQuoteID(data.quote_id);
+      if (data.aircraft === "") setIsContract(false);
+      else setIsContract(true);
       if (data.signed_by !== "" && data.signed_time !== null) {
         setApproveContract(true);
         setApprovePrivacyPolicy(true);
@@ -75,9 +80,9 @@ const Main = () => {
         setAllApproved(true);
         setName(data.signed_by);
         setTimeApproved(
-          new Date(data.signed_time).toLocaleDateString() +
+          new Date(data.signed_time).toLocaleDateString("en-GB") +
             " " +
-            new Date(data.signed_time).toLocaleTimeString()
+            new Date(data.signed_time).toLocaleTimeString("en-GB")
         );
       }
     }
@@ -92,28 +97,36 @@ const Main = () => {
       }}
     >
       <Toaster />
-      <h1>Welcome to AMC Aviation Payment</h1>
+      <h1>
+        Welcome to {isContractPayment ? "AMC Aviation" : "Invoice"} Payment
+      </h1>
       <Box>
-        <h3>Trip Details</h3>
+        {isContractPayment && <h3>Trip Details</h3>}
         <Grid container>
           <Grid xs={6} textAlign="right">
-            <Typography>Quote ID: </Typography>
+            <Typography>
+              {isContractPayment ? "Quote" : "Invoice"} ID:{" "}
+            </Typography>
           </Grid>
           <Grid xs={6} textAlign="left" sx={{ pl: 2 }}>
-            <Typography>{params.id.slice(0, 8)}</Typography>
+            <Typography>{quote_id}</Typography>
           </Grid>
-          <Grid xs={6} textAlign="right">
-            <Typography>Date: </Typography>
-          </Grid>
-          <Grid xs={6} textAlign="left" sx={{ pl: 2 }}>
-            <Typography>{tripDate}</Typography>
-          </Grid>
-          <Grid xs={6} textAlign="right">
-            <Typography>Aircraft: </Typography>
-          </Grid>
-          <Grid xs={6} textAlign="left" sx={{ pl: 2 }}>
-            <Typography>{aircraft}</Typography>
-          </Grid>
+          {isContractPayment && (
+            <>
+              <Grid xs={6} textAlign="right">
+                <Typography>Date: </Typography>
+              </Grid>
+              <Grid xs={6} textAlign="left" sx={{ pl: 2 }}>
+                <Typography>{tripDate}</Typography>
+              </Grid>
+              <Grid xs={6} textAlign="right">
+                <Typography>Aircraft: </Typography>
+              </Grid>
+              <Grid xs={6} textAlign="left" sx={{ pl: 2 }}>
+                <Typography>{aircraft}</Typography>
+              </Grid>
+            </>
+          )}
         </Grid>
       </Box>
       <Divider sx={{ mt: 2, mb: 2 }}></Divider>
@@ -134,24 +147,26 @@ const Main = () => {
             }}
           ></Checkbox>
           <a target="_blank" href={"https://" + domain + "/" + filename}>
-            Contract
+            {isContractPayment ? "Contract" : "Invoice"}
           </a>
         </Grid>
-        <Grid item xs={12}>
-          <Checkbox
-            disabled={allApproved}
-            checked={approveCancelPolicy}
-            onClick={(e) => {
-              setApproveCancelPolicy(!approveCancelPolicy);
-            }}
-          ></Checkbox>
-          <a
-            target="_blank"
-            href={"https://" + domain + "/cancellation_policy.pdf"}
-          >
-            Cancellation Policy
-          </a>
-        </Grid>
+        {isContractPayment && (
+          <Grid item xs={12}>
+            <Checkbox
+              disabled={allApproved}
+              checked={approveCancelPolicy}
+              onClick={(e) => {
+                setApproveCancelPolicy(!approveCancelPolicy);
+              }}
+            ></Checkbox>
+            <a
+              target="_blank"
+              href={"https://" + domain + "/cancellation_policy.pdf"}
+            >
+              Cancellation Policy
+            </a>
+          </Grid>
+        )}
         <Grid item xs={12}>
           <Checkbox
             disabled={allApproved}
@@ -180,7 +195,7 @@ const Main = () => {
           <Fade
             in={
               approveContract &&
-              approveCancelPolicy &&
+              (!isContractPayment || approveCancelPolicy) &&
               approvePrivacyPolicy &&
               name != ""
             }
@@ -196,6 +211,9 @@ const Main = () => {
             ? "Due to online payment limits, there more than one payments are required. To pay, click one by one."
             : "To pay, click the link below."}
         </Typography>
+        <Box sx={{ mt: 4 }}>
+          <img src="cards.svg"></img>
+        </Box>
         <Grid container sx={{ mt: 3 }}>
           <Grid item xs={6} md={6} sx={{ textAlign: "right", pr: 3 }}>
             Total pay amount:
@@ -207,20 +225,19 @@ const Main = () => {
         {tx.map((value, index) => {
           return (
             <Grid container>
-              <Grid item xs={6} md={6} sx={{ textAlign: "right", pr: 3 }}>
-                Pay
-              </Grid>
+              <Grid
+                item
+                xs={6}
+                md={6}
+                sx={{ textAlign: "right", pr: 3 }}
+              ></Grid>
               <Grid item xs={2} md={2} sx={{ textAlign: "left" }}>
                 <Typography sx={{ color: "blue" }}>€{value}</Typography>
               </Grid>
               <Grid item xs={4} md={4} sx={{ textAlign: "left" }}>
-                {status[index] == "Completed" ? (
-                  "Paid"
-                ) : (
-                  <a href={links[index]} target="_blank">
-                    [Link{index + 1}]
-                  </a>
-                )}
+                <a href={links[index]}>
+                  {status[index] == "Completed" ? "Paid" : "Click to pay"}
+                </a>
               </Grid>
             </Grid>
           );

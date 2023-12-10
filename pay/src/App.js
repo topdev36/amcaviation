@@ -4,7 +4,6 @@ import "App.css";
 import { useEffect } from "react";
 import Header from "components/Header";
 import Main from "./components/Main";
-import Payment from "./components/Payment";
 
 const myTheme = createTheme({
   typography: {
@@ -27,7 +26,6 @@ function App() {
         <HashRouter>
           <Routes>
             <Route path="/:id" element={<Main />} />
-            <Route path="/:id/:txid" element={<Payment />} />
           </Routes>
         </HashRouter>
       </div>

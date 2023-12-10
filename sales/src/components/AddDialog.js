@@ -14,12 +14,12 @@ import {
 } from "@mui/material";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import RemoveCircleOutlineIcon from "@mui/icons-material/RemoveCircleOutline";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { uploadFile, requestPaymentLink } from "service/BackendApi";
 import toast, { Toaster } from "react-hot-toast";
 
 function AddDialog(props) {
-  const { onClose, open, isExist } = props;
+  const { onClose, open, isExist, isContractAdd, orderID } = props;
   const [creation, setCreation] = useState("");
   const [date, setDate] = useState("");
   const [quote_id, setQuoteID] = useState("");
@@ -32,12 +32,54 @@ function AddDialog(props) {
   const [newFileName, setNewFileName] = useState("");
   const inputFile = useRef(null);
 
+  useEffect(() => {
+    setQuoteID(orderID.toString());
+    setSum("");
+    setTxSum(0);
+    setEmail("");
+    setDate("");
+    setAircraft("");
+    setNewFileName("");
+    if (!isContractAdd) {
+      var timeNow =
+        new Date().toLocaleDateString("en-GB") +
+        " " +
+        new Date().toLocaleTimeString("en-GB");
+      setCreation(timeNow);
+    } else setCreation("");
+    setTx([]);
+  }, [orderID]);
   function handleFileChange(event) {
     if (event.target.files[0] != undefined) {
       setIsLoading(true);
-      uploadFile(event.target.files[0], cbUpload);
+      uploadFile(event.target.files[0], isContractAdd, cbUpload);
     }
   }
+
+  const cbUpload = (resp) => {
+    setIsLoading(false);
+    if (!resp) {
+      toast("Upload failed! Only .pdf file is allowed.");
+      return;
+    }
+
+    if (isContractAdd) {
+      var data = resp.data;
+      if (isExist(data.quote_id)) {
+        toast("Existing contract.");
+        return;
+      }
+      setAircraft(data.aircraft);
+      setSum(Number(data.sum));
+      setDate(data.date);
+      setQuoteID(data.quote_id);
+      setEmail(data.email);
+      setTx([Number(data.sum) > 20000 ? 20000 : Number(data.sum)]);
+      setTxSum(Number(data.sum) > 20000 ? 20000 : Number(data.sum));
+      setCreation(data.creation);
+    }
+    setNewFileName(resp.newFileName);
+  };
 
   const handleClose = () => {
     onClose(null);
@@ -50,8 +92,10 @@ function AddDialog(props) {
 
   const addTx = () => {
     let newArrTx = [];
-    newArrTx = newArrTx.concat(arrTx, sum - sumTx);
-    setTxSum(sum);
+    let newTx = Number((sum - sumTx).toFixed(5));
+    if (newTx > 20000) newTx = 20000;
+    newArrTx = newArrTx.concat(arrTx, newTx);
+    setTxSum(sumTx + newTx);
     setTx(newArrTx);
   };
 
@@ -66,32 +110,42 @@ function AddDialog(props) {
   };
 
   const onTxValueChanged = (e, index) => {
+    if (isNaN(e.target.value)) return;
     let newArrTx = [...arrTx];
     let tmpSum = 0;
-    let value = Number(e.target.value);
-    if(value < 0)
-      return;
+    let value = e.target.value;
+    if (Number(value) < 0) return;
+    if (Number(value) > 20000) value = 20000;
     newArrTx[index] = value;
     newArrTx.forEach((num) => {
-      tmpSum += num;
+      tmpSum += Number(num);
     });
     if (sum <= tmpSum) {
       newArrTx[index] -= tmpSum - sum;
+      newArrTx[index] = Number(newArrTx[index].toFixed(5));
       tmpSum = sum;
     }
-
     setTxSum(tmpSum);
     setTx(newArrTx);
   };
 
   const infoChanged = (e, idx) => {
-    if (idx == "quote_id") setQuoteID(e.target.value);
+    if (idx == "quote_id") {
+      if (e.target.value.match(/[^a-zA-Z-0-9]+/) != null) {
+        toast("Only alphanumberic and dash can be entered.");
+      }
+      setQuoteID(e.target.value.replace(/[^a-zA-Z-0-9]+/, ""));
+    }
     if (idx == "date") setDate(e.target.value);
     if (idx == "aircraft") setAircraft(e.target.value);
     if (idx == "sum") {
-      setSum(Number(e.target.value));
-      setTx([Number(e.target.value)]);
-      setTxSum(Number(e.target.value));
+      if (isNaN(e.target.value)) return;
+      let val = e.target.value;
+      if (Number(val) < 0) return;
+      setSum(val);
+      if (Number(val) > 20000) val = 20000;
+      setTx([val]);
+      setTxSum(val);
     }
     if (idx == "email") setEmail(e.target.value);
   };
@@ -105,8 +159,9 @@ function AddDialog(props) {
       sum: sum,
       txs: arrTx,
       file: newFileName,
-      email: email
+      email: email,
     };
+
     setIsLoading(true);
     requestPaymentLink(params, cbGenerate);
   };
@@ -128,6 +183,7 @@ function AddDialog(props) {
       arrTx: arrTx,
       status: new Array(arrTx.length).fill("Pending"),
     };
+    onClose(ret);
     setSum("");
     setTxSum(0);
     setEmail("");
@@ -135,30 +191,8 @@ function AddDialog(props) {
     setAircraft("");
     setQuoteID("");
     setNewFileName("");
+    setCreation("");
     setTx([]);
-    onClose(ret);
-  };
-
-  const cbUpload = (resp) => {
-    setIsLoading(false);
-    if (!resp) {
-      toast("Upload failed! Only .pdf file is allowed.");
-      return;
-    }
-    var data = resp.data;
-    if (isExist(data.quote_id)) {
-      toast("Existing contract.");
-      return;
-    }
-    setAircraft(data.aircraft);
-    setSum(Number(data.sum));
-    setDate(data.date);
-    setQuoteID(data.quote_id);
-    setEmail(data.email);
-    setTx([Number(data.sum)]);
-    setTxSum(Number(data.sum));
-    setCreation(data.creation);
-    setNewFileName(resp.newFileName);
   };
 
   return (
@@ -180,25 +214,27 @@ function AddDialog(props) {
         <Grid container>
           <Grid item sx={{ margin: "auto" }}>
             <Button variant="outlined" onClick={() => onUploadClick()}>
-              Upload contract
+              Upload {isContractAdd ? "contract" : "invoice"}
             </Button>
           </Grid>
         </Grid>
+        {isContractAdd && (
+          <Grid container>
+            <Grid item xs={3}>
+              <FormLabel>Date</FormLabel>
+            </Grid>
+            <Grid item xs={9}>
+              <TextField
+                size="small"
+                value={date}
+                onChange={(e) => infoChanged(e, "date")}
+              ></TextField>
+            </Grid>
+          </Grid>
+        )}
         <Grid container>
           <Grid item xs={3}>
-            <FormLabel>Date</FormLabel>
-          </Grid>
-          <Grid item xs={9}>
-            <TextField
-              size="small"
-              value={date}
-              onChange={(e) => infoChanged(e, "date")}
-            ></TextField>
-          </Grid>
-        </Grid>
-        <Grid container>
-          <Grid item xs={3}>
-            <FormLabel>Quote ID</FormLabel>
+            <FormLabel>{isContractAdd ? "Quote" : "Invoice"} ID</FormLabel>
           </Grid>
           <Grid item xs={9}>
             <TextField
@@ -208,18 +244,20 @@ function AddDialog(props) {
             ></TextField>
           </Grid>
         </Grid>
-        <Grid container>
-          <Grid item xs={3}>
-            <FormLabel>Aircraft</FormLabel>
+        {isContractAdd && (
+          <Grid container>
+            <Grid item xs={3}>
+              <FormLabel>Aircraft</FormLabel>
+            </Grid>
+            <Grid item xs={9}>
+              <TextField
+                size="small"
+                value={aircraft}
+                onChange={(e) => infoChanged(e, "aircraft")}
+              ></TextField>
+            </Grid>
           </Grid>
-          <Grid item xs={9}>
-            <TextField
-              size="small"
-              value={aircraft}
-              onChange={(e) => infoChanged(e, "aircraft")}
-            ></TextField>
-          </Grid>
-        </Grid>
+        )}
         <Grid container>
           <Grid item xs={3}>
             <FormLabel>Sum</FormLabel>
@@ -227,78 +265,88 @@ function AddDialog(props) {
           <Grid item xs={9}>
             <TextField
               size="small"
-              type="number"
               value={sum}
               onChange={(e) => infoChanged(e, "sum")}
             ></TextField>
           </Grid>
         </Grid>
-        <Grid container>
-          <Grid item xs={3}>
-            <FormLabel>Recipient Email</FormLabel>
-          </Grid>
-          <Grid item xs={9}>
-            <TextField
-              size="small"
-              value={email}
-              onChange={(e) => infoChanged(e, "email")}
-            ></TextField>
-          </Grid>
-        </Grid>
-        <Grid container>
-          <Grid item xs={3}>
-            <FormLabel>Payment</FormLabel>
-          </Grid>
-        </Grid>
-        {arrTx.map((amount, index) => {
-          return (
-            <Grid container key={"txs_" + index}>
-              <Grid item xs={7} sx={{ ml: "auto" }}>
-                <TextField
-                  type="number"
-                  size="small"
-                  value={amount}
-                  onChange={(e) => onTxValueChanged(e, index)}
-                ></TextField>
-              </Grid>
-              {index == arrTx.length - 1 ? (
-                <Grid
-                  item
-                  xs={2}
-                  sx={{ ".MuiButtonBase-root": { padding: "0px !important" } }}
-                >
-                  <Button
-                    onClick={() => addTx()}
-                    disabled={sum <= sumTx || arrTx.length == 5}
-                    sx={{ color: "blue" }}
-                  >
-                    <AddCircleOutlineIcon></AddCircleOutlineIcon>
-                  </Button>
-                </Grid>
-              ) : (
-                <Grid
-                  item
-                  xs={2}
-                  sx={{ ".MuiButtonBase-root": { padding: "0px !important" } }}
-                >
-                  <Button
-                    onClick={() => removeTx(index)}
-                    sx={{ color: "blue" }}
-                  >
-                    <RemoveCircleOutlineIcon></RemoveCircleOutlineIcon>
-                  </Button>
-                </Grid>
-              )}
+        {isContractAdd && (
+          <Grid container>
+            <Grid item xs={3}>
+              <FormLabel>Recipient Email</FormLabel>
             </Grid>
-          );
-        })}
+            <Grid item xs={9}>
+              <TextField
+                size="small"
+                value={email}
+                onChange={(e) => infoChanged(e, "email")}
+              ></TextField>
+            </Grid>
+          </Grid>
+        )}
+        {isContractAdd && (
+          <Grid container>
+            <Grid item xs={3}>
+              <FormLabel>Payment</FormLabel>
+            </Grid>
+          </Grid>
+        )}
+        {isContractAdd &&
+          arrTx.map((amount, index) => {
+            return (
+              <Grid container key={"txs_" + index}>
+                <Grid item xs={7} sx={{ ml: "auto" }}>
+                  <TextField
+                    size="small"
+                    value={amount}
+                    onChange={(e) => onTxValueChanged(e, index)}
+                    disabled={!isContractAdd}
+                  ></TextField>
+                </Grid>
+                {index == arrTx.length - 1 ? (
+                  <Grid
+                    item
+                    xs={2}
+                    sx={{
+                      ".MuiButtonBase-root": { padding: "0px !important" },
+                    }}
+                  >
+                    {isContractAdd && (
+                      <Button
+                        onClick={() => addTx()}
+                        disabled={sum <= sumTx || arrTx.length == 5}
+                        sx={{ color: "blue" }}
+                      >
+                        <AddCircleOutlineIcon></AddCircleOutlineIcon>
+                      </Button>
+                    )}
+                  </Grid>
+                ) : (
+                  <Grid
+                    item
+                    xs={2}
+                    sx={{
+                      ".MuiButtonBase-root": { padding: "0px !important" },
+                    }}
+                  >
+                    <Button
+                      onClick={() => removeTx(index)}
+                      sx={{ color: "blue" }}
+                    >
+                      <RemoveCircleOutlineIcon></RemoveCircleOutlineIcon>
+                    </Button>
+                  </Grid>
+                )}
+              </Grid>
+            );
+          })}
 
         <Divider></Divider>
         <Grid container>
           <Grid item sx={{ margin: "auto" }}>
             <Button
               variant="contained"
-              disabled={sum != sumTx}
+              disabled={sum != sumTx || sum == 0}
               onClick={() => onGenerateLink()}
             >
               Generate payment link

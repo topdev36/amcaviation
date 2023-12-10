@@ -16,26 +16,30 @@ import EnhancedTable from "./EnhancedTable";
 import AddDialog from "./AddDialog";
 import NotifyDialog from "./NotifyDialog";
 import { getAllContracts, deleteContracts } from "service/BackendApi";
-import toast, {Toaster} from "react-hot-toast";
+import toast, { Toaster } from "react-hot-toast";
 
 const Contract = () => {
   const [fOpenAddDlg, setAddOpen] = useState(false);
+  const [fContractAdd, setFContractAdd] = useState(true);
+  const [orderID, setOrderID] = useState(Date.now());
   const [fOpenNotifyDlg, setNotifyOpen] = useState(false);
   const [paylink, setPaylink] = useState("");
   const [pattern, setPattern] = useState("");
   const [contracts, setContractData] = useState([]);
+  var idTimer = 0;
 
   useEffect(() => {
     getAllContracts(cbGetAllContracts);
   }, []);
 
   const cbGetAllContracts = (contractData) => {
-    let newContracts = [];    
+    let newContracts = [];
     contractData.map((data, index) => {
-      let amounts = [], status = [];
+      let amounts = [],
+        status = [];
       data.txs.map((tx, index) => {
-        amounts.push(tx.amount);   
-        status.push(tx.status); 
+        amounts.push(tx.amount);
+        status.push(tx.status);
       });
       newContracts = newContracts.concat(
         createData(
@@ -52,20 +56,22 @@ const Contract = () => {
         )
       );
     });
-    
     setContractData(newContracts);
+    setTimeout(() => {
+      getAllContracts(cbGetAllContracts);
+    }, 5000);
   };
 
   const onDeleteContracts = (selected) => {
     deleteContracts(selected, cbDelete);
-  }
+  };
 
   const cbDelete = (res) => {
-    if(res.success){
+    if (res.success) {
       toast(res.numDeleted + " row(s) deleted.");
       getAllContracts(cbGetAllContracts);
     }
-  }
+  };
 
   const onFilter = (e) => {
     let value = e.target.value;
@@ -76,7 +82,15 @@ const Contract = () => {
     return contracts.filter((d) => d.quote_id == quote_id).length > 0;
   };
 
-  const handleAddDialogClickOpen = () => {
+  const handleAddContractClick = () => {
+    setFContractAdd(true);
+    setOrderID("");    
+    setAddOpen(true);
+  };
+
+  const handleAddOrderClick = () => {
+    setFContractAdd(false);
+    setOrderID(Date.now());
     setAddOpen(true);
   };
 
@@ -94,7 +108,7 @@ const Contract = () => {
           result.sum,
           result.link,
           result.arrTx,
-          result.status,          
+          result.status,
           "",
           null
         )
@@ -131,7 +145,7 @@ const Contract = () => {
       transaction,
       status,
       signed_by,
-      signed_time
+      signed_time,
     };
   }
 
@@ -212,9 +226,16 @@ const Contract = () => {
       <Button
         variant="contained"
         sx={{ mr: "20px" }}
-        onClick={() => handleAddDialogClickOpen()}
+        onClick={() => handleAddContractClick()}
       >
         Add Contract
+      </Button>
+      <Button
+        variant="contained"
+        sx={{ mr: "20px" }}
+        onClick={() => handleAddOrderClick()}
+      >
+        Add Invoice
       </Button>
       <TextField
         variant="outlined"
@@ -245,13 +266,15 @@ const Contract = () => {
         rowData={contracts.filter((d) =>
           d.quote_id.toUpperCase().includes(pattern.toUpperCase())
         )}
-        onDeleteRows = {onDeleteContracts}
+        onDeleteRows={onDeleteContracts}
       ></EnhancedTable>
 
       <AddDialog
         open={fOpenAddDlg}
+        isContractAdd={fContractAdd}
         onClose={handleAddDialogClose}
         isExist={isDuplicateContract}
+        orderID={orderID}
       />
       <NotifyDialog
         open={fOpenNotifyDlg}
