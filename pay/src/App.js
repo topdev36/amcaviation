@@ -22,7 +22,7 @@ function App() {
       {/* <AuthProvider>
        */}
       <div className="App">
-        <Header></Header>
+        {/* <Header></Header> */}
         <HashRouter>
           <Routes>
             <Route path="/:id" element={<Main />} />

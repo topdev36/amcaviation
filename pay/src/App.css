@@ -38,10 +38,38 @@
 }
 
 .App{
-  max-width: 1200px;
+  max-width: 800px;
   margin: auto;
+  text-align: center;
 }
 
 .MuiButtonBase-root{
   text-transform: none !important;
+}
+
+.MuiCheckbox-root, .Mui-checked{
+  color: #79103b !important;
+}
+
+a{
+  color: #000 !important;
+}
+
+@media (max-width: 600px){
+  .smCenter{
+    max-width: 40% !important;
+  }
+}
+
+@media (max-width: 450px){
+  .smCenter{
+    max-width: 80% !important;
+  }
+}
+
+@media (min-width: 500px){
+  .txtMultiTxNotice{
+    margin-left: 50px !important;
+    margin-right: 50px !important;
+  }
 }
